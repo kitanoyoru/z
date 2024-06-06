@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn randomString(allocator: std.mem.Allocator, size: u32, charset: []const u8) ![]const u8 {
+pub fn randomString(allocator: std.mem.Allocator, size: usize, charset: []const u8) ![]const u8 {
     if (size == 0) {
         return error.InvalidSize;
     }
@@ -9,7 +9,6 @@ pub fn randomString(allocator: std.mem.Allocator, size: u32, charset: []const u8
     }
 
     const buffer = try allocator.alloc(u8, size);
-    defer allocator.free(buffer);
 
     var prng = std.rand.DefaultPrng.init(blk: {
         var seed: u64 = undefined;
@@ -24,9 +23,7 @@ pub fn randomString(allocator: std.mem.Allocator, size: u32, charset: []const u8
         ch.* = charset[idx];
     }
 
-    const result = try allocator.dupe(u8, buffer);
-
-    return result;
+    return buffer;
 }
 
 test "should generate random string with specified charset" {
@@ -42,6 +39,7 @@ test "should generate random string with specified charset" {
         std.debug.print("Error: {}\n", .{err});
         return;
     };
+    defer allocator.free(result);
 
     std.testing.expect(result.len == 10) catch {
         std.debug.print("Error: wrong generated size\n", .{});
