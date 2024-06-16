@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    paths-ignore:
+      - "README.md"
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "README.md"
+      - "**.md"
+jobs:
+  x86_64-linux:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Zig
+        run: |
+          sudo apt install xz-utils
+          sudo sh -c 'wget -c https://pkg.machengine.org/zig/zig-linux-x86_64-0.13.0-dev.351+64ef45eb0.tar.xz -O - | tar -xJ --strip-components=1 -C /usr/local/bin'
+      - name: test
+        run: zig build test
+  x86_64-macos:
+    runs-on: macos-12
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Zig
+        run: |
+          brew uninstall --ignore-dependencies libx11 # https://github.com/ziglang/zig/issues/11066
+          brew install xz
+          sudo sh -c 'wget -c https://pkg.machengine.org/zig/zig-macos-x86_64-0.13.0-dev.351+64ef45eb0.tar.xz -O - | tar -xJ --strip-components=1 -C /usr/local/bin'
+      - name: test
+        run: zig build test
